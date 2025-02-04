@@ -15,7 +15,7 @@ def query_local_dns_server(domain,question_type):
     answers = resolver.resolve(domain, question_type)
     
     ip_address = answers[0].to_text()
-    return ip_address   
+    return ip_address
     
 # Define a function to query a public DNS server for the IP address of a given domain name
 def query_dns_server(domain,question_type):
@@ -31,8 +31,12 @@ def query_dns_server(domain,question_type):
 def compare_dns_servers(domainList,question_type):
     for domain_name in domainList:
         local_ip_address = query_local_dns_server(domain_name,question_type)
-        public_ip_address = query_dns_server(domain_name,question_type)
-        if local_ip_address != public_ip_address:
+        # Get all possible IPs from public DNS
+        resolver = dns.resolver.Resolver()
+        resolver.nameservers = [real_name_server]
+        answers = resolver.resolve(domain_name, question_type)
+        valid_ips = [answer.to_text() for answer in answers]
+        if local_ip_address not in valid_ips:
             return False
     return True    
     
@@ -42,7 +46,6 @@ def local_external_DNS_output(question_type):
     for domain_name in domainList:
         ip_address = query_local_dns_server(domain_name,question_type)
         print(f"The IP address of {domain_name} is {ip_address}")
-
 
     print("\nPublic DNS Server")
 
